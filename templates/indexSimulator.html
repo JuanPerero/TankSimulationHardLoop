@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Tanque de Animación y Gráfico Temporal</title>
+  <!-- Socket.IO -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.js"></script>
+  <!-- FusionCharts para la animación del tanque -->
+  <script type="text/javascript" src="https://cdn.fusioncharts.com/fusioncharts/latest/fusioncharts.js"></script>
+  <script type="text/javascript" src="https://cdn.fusioncharts.com/fusioncharts/latest/themes/fusioncharts.theme.fusion.js"></script>
+  <script type="text/javascript" src="/tank_animation4.js"></script>
+  
+  <!-- Chart.js para el gráfico temporal deslizante -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-streaming@2.0.0"></script>
+  
+  <style>
+    .container {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      gap: 20px;
+      margin: 20px;
+    }
+    
+    .panel {
+      border: 1px solid #ddd;
+      padding: 15px;
+      border-radius: 5px;
+      width: 100%;
+      max-width: 500px;
+    }
+    
+    button {
+      padding: 10px 15px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    button:hover {
+      background-color: #45a049;
+    }
+    
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>Simulación de tanque de agua - Serial implementado - sin reejecucion - Sin cambio de parametros - Sin limite de la señal de control, (El que vea esto que pregunte a Juan) </h2>
+  <div class="container">
+  
+  <!-- Panel del tanque de animación -->
+  <div class="panel">
+    <h2>Tanque de Sublimacion</h2>
+    <div id='chart-container'>Reload Page if you don't see animation</div>
+      <!-- El gráfico se renderizará aquí -->
+  </div>
+
+    <!-------------------------------------------------------------------------------------------->
+    <!--------------------------------   Panel del gráfico temporal -------------------------->
+    <!-------------------------------------------------------------------------------------------->
+    <div class="panel">
+      <h2>Gráfico con Ventana Temporal Deslizante</h2>
+      <div class="chart-container">
+        <canvas id="myChart"  width="500" height="200"></canvas>
+      </div>
+      <!----   Grafico de la señal de entrada ---->
+      <div class="chart-container">
+        <canvas id="Chart2"  width="500" height="200"></canvas>
+      </div>
+    </div>
+    </div>
+    <!-------------------------------------------------------------------------------------------->
+    <!-------------------------------------------------------------------------------------------->
+
+
+  
+
+  <script>
+    // Inicializar Socket.IO
+    const socket = io();
+    
+    // Escuchar las actualizaciones del servidor
+    socket.on('actualizacion_valor', function(data) {
+      console.log('Valor recibido del servidor:', data.valor);
+      actualizarSistema(data.valor,data.ctrl);
+    });
+    
+    socket.on('change_ref', function(data){
+      change_ref(data.valor)
+    });
+
+    // Función para enviar comandos al puerto serial
+    function enviarComandoSerial(valor) {
+      fetch('/enviar_comando', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ comando: valor.toString() }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Comando enviado:', data);
+      })
+      .catch((error) => {
+        console.error('Error al enviar comando:', error);
+      });
+    }
+
+
+    
+      //-------------------------------------------------------------------
+      // Actualizacion de gráfico temporal
+      //-------------------------------------------------------------------
+
+      function actualizarSistema(valor,control) {
+      // Convertir a número si es string
+      valor = parseFloat(valor); 
+      // Actualizar tanque
+      if (chartObj && chartObj.setData) {
+        chartObj.setData(valor);
+      }
+      if (window.myChart) {
+        const now = Date.now();
+        window.myChart.data.datasets[0].data.push({
+          x: now,
+          y: valor 
+        });
+      // Añadir valor de referencia al segundo dataset (línea horizontal)
+          window.myChart.data.datasets[1].data.push({
+          x: now,
+          //y: referenceValue / 7 // Escalar igual que el valor medido
+          y: referenceValue 
+        });
+        window.inputChart.data.datasets[0].data.push({
+          x: now,
+          y: control
+        });
+      }
+      
+      console.log("Valor actual:", valor);
+    }
+
+    // Altura visual relativa
+    var targetValue = 200;
+    var upperLimit = 800;
+    var lowerLimit = 0;
+    var cylOriginY = 320;
+    var cylHeight = 250+190;
+    var A1 = -97/256;
+    var B1 = 70+320;
+    - 200 * 97/256 + 390
+    //const relativeY = cylOriginY - (targetValue - lowerLimit) / (upperLimit - lowerLimit) * cylHeight;
+    
+    
+    let referenceValue = 0;
+    function change_ref(val) {
+        referenceValue = parseFloat(val); 
+
+        if (chartObj) {  // Verificar que chartObj existe antes de usarlo
+            let currentData = chartObj.getJSONData();
+            //relativeY = cylOriginY - (val - lowerLimit) / (upperLimit - lowerLimit) * cylHeight;
+            relativeY = A1 * val + B1;
+            let items = currentData.annotations.groups.find(g => g.id === "imageGroup").items;
+            items.forEach(item => {
+                if (item.id === "horizontalLine") item.y = relativeY; item.toY = relativeY;
+
+            });
+            chartObj.setJSONData(currentData);
+            }
+    }
+    change_ref(200);
+    
+    //-------------------------------------------------------------------
+    //-------------------------------------------------------------------
+
+
+
+
+
+//-------------------------------------------------------------------
+//----------------              Creacion de graficos temporales
+//-------------------------------------------------------------------
+
+    
+    // Código para el gráfico temporal deslizante
+    const ventana_ms = 60 * 1000; // 60 segundos
+    
+    // Crear el gráfico cuando se cargue la página
+    // Crear los gráficos cuando se cargue la página
+    document.addEventListener('DOMContentLoaded', () => {
+      // Configuración común para ambos gráficos
+      const chartConfig = {
+        animation: false,
+        scales: {
+          x: {
+            type: 'realtime',
+            adapters: {
+              date: luxon
+            },
+            time: {
+              unit: 'second',
+              displayFormats: {
+                second: 'HH:mm:ss'
+              }
+            },
+            realtime: {
+              duration: ventana_ms,
+              refresh: 1000,
+              delay: 0,
+              onRefresh: null
+            }
+          },
+          y: {
+            beginAtZero: true
+          }
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top'
+          }
+        }
+      };
+      
+      // Crear primer gráfico - Nivel del tanque
+      const ctx1 = document.getElementById('myChart').getContext('2d');
+      const myChart = new Chart(ctx1, {
+        type: 'line',
+        data: {
+          datasets: [
+            {
+              label: 'Nivel del Tanque',
+              data: [],
+              borderColor: 'blue',
+              backgroundColor: 'rgba(0, 0, 255, 0.1)',
+              borderWidth: 2,
+              fill: true,
+              tension: 0.3
+            },
+            {
+              label: 'Referencia',
+              data: [],
+              borderColor: 'green',
+              borderWidth: 2,
+              borderDash: [5, 5],
+              fill: false,
+              tension: 0,
+              pointRadius: 0, // No mostrar puntos, solo la línea
+              spanGaps: true  // Conectar los puntos incluso si hay huecos
+            }
+          ]
+        },
+        options: {
+          ...chartConfig,
+          scales: {
+            ...chartConfig.scales,
+            y: {
+              beginAtZero: true,
+              min: 0,  // Valor mínimo fijo
+              max: 800, // Valor máximo fijo (ajústalo según tus necesidades)
+              title: {
+                display: true,
+                text: 'Nivel'
+              }
+            }
+          },
+          plugins: {
+            ...chartConfig.plugins,
+            title: {
+              display: true,
+              text: 'Nivel del Tanque'
+            }
+          }
+        },
+        plugins: [ChartStreaming]
+      });
+      
+      // Crear segundo gráfico - Señal de entrada
+      const ctx2 = document.getElementById('Chart2').getContext('2d');
+      const inputChart = new Chart(ctx2, {
+        type: 'line',
+        data: {
+          datasets: [{
+            label: 'Control Aplicado',
+            data: [],
+            borderColor: 'red',
+            backgroundColor: 'rgba(255, 0, 0, 0.1)',
+            borderWidth: 2,
+            fill: false,
+            tension: 0.3
+          }]
+        },
+        options: {
+          ...chartConfig,
+          scales: {
+            ...chartConfig.scales,
+            y: {
+              ...chartConfig.scales.y,
+              title: {
+                display: true,
+                text: 'Caudal [q_e]'
+              }
+            }
+          },
+          plugins: {
+            ...chartConfig.plugins,
+            title: {
+              display: true,
+              text: 'Señal de Entrada'
+            }
+          }
+        },
+        plugins: [ChartStreaming]
+      });
+      
+      // Hacemos que los gráficos sean globales para poder acceder desde otras funciones
+      window.myChart = myChart;
+      window.inputChart = inputChart;
+    });
+
+
+
+
+
+  </script>
+
+<div style="text-align: center; width: 100%;">
+    <iframe id="conf_frame" style="width: 100%; height: 650px; border: none;" src="configuraciones.html" title="Panel de Configuraciones"></iframe>
+</div>
+
+</body>
+</html>
