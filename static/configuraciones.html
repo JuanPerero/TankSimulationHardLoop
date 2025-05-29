@@ -199,17 +199,33 @@
         // Inicio de simulación
         // -----------------------------------------------------------------------------------
         document.getElementById('start-simulation').addEventListener('click', function() {
-            iniciarSimulacion();
+           if (validateAllFields()) {
+                iniciarSimulacion();
+            } else {
+                alert('Por favor, corrija los errores antes de iniciar la simulación.');
+            }
         });
 
         const socket_conf = io();
 
         function cambiarparametros() {
-            const param1 = document.getElementById('system-param1').value;
-            const param2 = document.getElementById('system-param2').value;
-            const param3 = document.getElementById('system-param3').value;
-            const param4 = document.getElementById('system-param4').value;
-            alert(`Parámetros cambiados: ${param1}, ${param2}, ${param3}, ${param4}`);
+             if (validateAllFields()) {
+                const param1 = document.getElementById('system-param1').value;
+                const param2 = document.getElementById('system-param2').value;
+                const param3 = document.getElementById('system-param3').value;
+                const param4 = document.getElementById('system-param4').value;
+                alert(`Parámetros cambiados: \r h0 no repercute en el cambio ${param1},\r ${param2},\r ${param3},\r ${param4}`);
+                // Enviar los parámetros al servidor
+                socket_conf.emit('changeparameter', {
+                   systemParam1: param1,
+                    systemParam2: param2,   
+                    systemParam3: param3,
+                    systemParam4: param4,
+                });
+            } else {
+                alert('Por favor, corrija los errores antes de cambiar los parámetros.');
+            }
+            window.parent.change_ref(systemParam4); 
         }
 
         function iniciarSimulacion(){
@@ -242,9 +258,9 @@
                 baudRate: baudRate
             });
 
-
+        window.parent.actualizarSistema(systemParam1)    
         }
-        window.parent.actualizarSistema(systemParam4)
+        
 
         function lanzarNewRef(new_value) {
             window.parent.postMessage({ type: "change_ref" }, new_value); // Mejor reemplazar * por el origen real
@@ -274,6 +290,69 @@
                 statusDiv.textContent = '- Serial incierto -';
             }
         });
+        
+        //---------------------------------------------------------------
+        //                  Validación de campos
+        //---------------------------------------------------------------
+        
+        function isValidNumber(value) {
+            return value !== '' && !isNaN(value) && isFinite(value);
+        }
 
+        function validateAllFields() {
+            // Validar cada campo individualmente
+            let allValid = true;
+            
+            // Validar parámetros del sistema
+            const param1 = document.getElementById('system-param1').value.trim();
+            const param2 = document.getElementById('system-param2').value.trim();
+            const param3 = document.getElementById('system-param3').value.trim();
+            const param4 = document.getElementById('system-param4').value.trim();
+            const serialPort = document.getElementById('serial-port').value;
+            const customPort = document.getElementById('custom-port').value.trim();
+
+            // Verificar que todos los campos numéricos estén completos y sean válidos
+            if (!param1 || !isValidNumber(param1)) {
+                document.getElementById('system-param1').classList.add('error');
+                allValid = false;
+            } else {
+                document.getElementById('system-param1').classList.remove('error');
+            }
+
+            if (!param2 || !isValidNumber(param2) || parseFloat(param2) <= 0) {
+                document.getElementById('system-param2').classList.add('error');
+                allValid = false;
+            } else {
+                document.getElementById('system-param2').classList.remove('error');
+            }
+
+            if (!param3 || !isValidNumber(param3) || parseFloat(param3) <= 0) {
+                document.getElementById('system-param3').classList.add('error');
+                allValid = false;
+            } else {
+                document.getElementById('system-param3').classList.remove('error');
+            }
+
+            if (!param4 || !isValidNumber(param4)) {
+                document.getElementById('system-param4').classList.add('error');
+                allValid = false;
+            } else {
+                document.getElementById('system-param4').classList.remove('error');
+            }
+
+            // Verificar puerto serial
+            if (!serialPort) {
+                document.getElementById('serial-port').classList.add('error');
+                allValid = false;
+            } else if (serialPort === 'custom' && !customPort) {
+                document.getElementById('custom-port').classList.add('error');
+                allValid = false;
+            } else {
+                document.getElementById('serial-port').classList.remove('error');
+                document.getElementById('custom-port').classList.remove('error');
+            }
+
+            return allValid;
+        }
     </script>
 </body>

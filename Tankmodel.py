@@ -54,6 +54,16 @@ class WaterTank:
         self.h0 = self.h
         return self.h
 
+    def set_values(self, A, C, reference, h0):
+        # Actualizacion de los parametros del tanque
+        self.A = A
+        self.C = C
+        self.ref = reference
+        self.h0 = h0
+
+        self.g2 = -self.C*np.sqrt(2*self.g)
+        return
+
 
     def step_v1(self, input):
 

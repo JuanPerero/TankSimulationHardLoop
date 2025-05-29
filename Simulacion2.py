@@ -76,8 +76,9 @@ def enviar_comando():
 def Inicializacion(data): 
     print("LLEGO EL LLAMADO")
     print("Parámetros recibidos:", data)
-    init_serial(data)
-    init_simulation(data)
+    isopen = init_serial(data)
+    if isopen:
+        init_simulation(data)
 
 
 def init_serial(params):
@@ -87,10 +88,11 @@ def init_serial(params):
         ser.open()
         print("Puerto serie abierto")
         socketio.emit('serialStatus', {'status': 'connected'}, to=request.sid)
+        return True
     except serial.SerialException as e:
         print(f"Error al abrir el puerto serie: {e}")
         socketio.emit('serialStatus', {'status': 'error'}, to=request.sid)
-        return
+        return False
 
 
 global Instancia_simulacion
@@ -115,14 +117,32 @@ def set_reference(valor):
 
 
 
+################################################################################
+#####                   FUNCIONES DE CAMBIO DE PARAMETROS                  #####
+################################################################################
+
+@socketio.on('changeparameter')
+def Change_parameters(data): 
+    print("Cambio de parámetros:", data)
+    global Instancia_simulacion
+    Hinicial = data['systemParam1']
+    CtteQ2 = data['systemParam2']
+    area = data['systemParam3']
+    referencia = data['systemParam4']
+    # Convertit todos los valores a float
+    Hinicial = float(Hinicial)
+    CtteQ2 = float(CtteQ2)
+    area = float(area)
+    referencia = float(referencia)
+    Instancia_simulacion.set_values(area, CtteQ2, referencia, Hinicial)
 
 
 
 
 
 
-
-
+################################################################################
+################################################################################
 
 lock_serial = threading.Lock()
 def ciclos_loop_test():
