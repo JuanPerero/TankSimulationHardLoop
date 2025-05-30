@@ -102,6 +102,7 @@ float SimulateControlIn(){
       }
     } 
     // Mantener la compatibilidad con los otros comandos
+    /*
     else if (comandoRecibido == 'B') {
       valorRespuesta = outputs - 15;
       flag = false;
@@ -110,6 +111,7 @@ float SimulateControlIn(){
       valorRespuesta = random(0, 750);
       flag = false;
     }
+    */
     else {
       // Limpiar el buffer serial si recibimos algo que no reconocemos
       while (Serial.available() > 0) {

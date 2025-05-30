@@ -23,6 +23,7 @@ socketio = SocketIO(app)
 # Variable para almacenar el último valor recibido
 ultimo_valor = 0
 # Flag para controlar ejecución del programa
+global ejecutando
 ejecutando = True
 
 ################################################################################
@@ -67,6 +68,20 @@ def enviar_comando():
         print("ERROR\r")
         return #jsonify({"status": "error", "mensaje": str(e)}), 500
 '''
+
+
+
+################################################################################
+#####                   CONTROL DE ACTIVIDAD DE LA WEB                     #####
+################################################################################
+# In place of something like this
+#@app.before_first_request
+#def first_request():
+#    print("BEFORE FIRST REQUEST")
+
+@app.before_request
+def second_request():
+    print("BEFORE Rec")
 
 ################################################################################
 #####                   FUNCION DE INICIALIZACION SERIAL                   #####
@@ -123,78 +138,50 @@ def set_reference(valor):
 
 @socketio.on('changeparameter')
 def Change_parameters(data): 
-    print("Cambio de parámetros:", data)
+    global ejecutando
+    if ejecutando:
+        print("Cambio de parámetros:", data)
+        global Instancia_simulacion
+        #Hinicial = data['systemParam1']
+        CtteQ2 = data['systemParam2']
+        area = data['systemParam3']
+        referencia = data['systemParam4']
+        # Convertit todos los valores a float
+        #Hinicial = float(Hinicial)
+        CtteQ2 = float(CtteQ2)
+        area = float(area)
+        referencia = float(referencia)
+        Instancia_simulacion.set_values(area, CtteQ2, referencia, Instancia_simulacion.h0)
+    
+
+
+################################################################################
+#####                   REINICIO DEL SISTEMA                               #####
+################################################################################
+
+@socketio.on('resetsimulation')
+def clear_all_resources(data):
+    # Limpiar instancia de simulacion  
     global Instancia_simulacion
-    Hinicial = data['systemParam1']
-    CtteQ2 = data['systemParam2']
-    area = data['systemParam3']
-    referencia = data['systemParam4']
-    # Convertit todos los valores a float
-    Hinicial = float(Hinicial)
-    CtteQ2 = float(CtteQ2)
-    area = float(area)
-    referencia = float(referencia)
-    Instancia_simulacion.set_values(area, CtteQ2, referencia, Hinicial)
-
-
-
+    del Instancia_simulacion
+    Instancia_simulacion = None
+    # cerrar puerto serie
+    ser.close()
+    # Deshabilitacion de bandera de ejecucion
+    global ejecutando  
+    ejecutando = False
 
 
 
 ################################################################################
 ################################################################################
-
-lock_serial = threading.Lock()
-def ciclos_loop_test():
-    """Envía secuencialmente A, B, C al puerto serie y espera la respuesta de cada uno antes de continuar"""
-    global ejecutando, ultimo_valor
-    letras = ['A', 'B', 'C']
-    indice = 0
-
-    while ejecutando:
-        try:
-            letra = letras[indice]
-            indice = (indice + 1) % len(letras)
-
-            # Enviar letra
-            with lock_serial:
-                ser.write(letra.encode())
-                print(f"[ENVIO] Letra enviada: {letra}")
-
-            # Leer respuesta (bloqueante hasta timeout)
-            with lock_serial:
-                respuesta = ser.readline()
-
-            if respuesta:
-                try:
-                    valor_str = respuesta.decode('utf-8', errors='ignore').strip()
-                    match = re.search(r'(-?\d+\.?\d*)', valor_str)
-                    if match:
-                        numero_str = match.group(1)
-                        valor = float(numero_str) if '.' in numero_str else int(numero_str)
-                        ultimo_valor = valor
-                        socketio.emit('actualizacion_valor', {'valor': valor})
-                        print(f"[RESPUESTA] Valor recibido: {valor}")
-                    else:
-                        print(f"[AVISO] Respuesta sin número válida: {valor_str}")
-                except Exception as e:
-                    print(f"[ERROR] Procesando respuesta: {e}")
-            else:
-                print("[TIMEOUT] No se recibió respuesta del dispositivo.")
-
-            # Esperar antes del siguiente envío
-            time.sleep(1)
-
-        except Exception as e:
-            print(f"[ERROR GENERAL] {e}")
-            time.sleep(10)
-
 
 #lock_serial = threading.Lock()
 y_sense = 0
 def ciclo_comando_y_lectura():
     y_sense = Instancia_simulacion.h0 
     #Enviar referencia
+    global ejecutando  
     while ejecutando:
         try:
             #####################################################
@@ -235,8 +222,7 @@ def recep_serial():
 
 def iniciar_servidor_flask():
     print("ejecutar el servidor Flask en un hilo separado")
-    socketio.run(app, debug=False, host='0.0.0.0', port=5000)  # Desactivamos debug en el hilo
-    #socketio.run(app, debug=False, use_reloader=False, host='0.0.0.0', port=5000)
+    socketio.run(app, debug=False, host='0.0.0.0', port=5000)
 
 
 if __name__ == '__main__':
@@ -249,7 +235,8 @@ if __name__ == '__main__':
             if Instancia_simulacion is None: # is not None:
                 time.sleep(2)
             else:
-                print("Se inicializa??")
+                print("Inicio de instancia de simulación")
+                ejecutando = True
                 ciclo_comando_y_lectura()
         
     except KeyboardInterrupt:
@@ -259,5 +246,3 @@ if __name__ == '__main__':
     finally:
         ejecutando = False
         print("Finalizando programa...")
-
-    print("Se te cerro el script")

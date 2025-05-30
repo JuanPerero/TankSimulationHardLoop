@@ -72,6 +72,14 @@
             width: 100%;
             margin-top: 10px;
         }
+
+        .reset-btn{
+            background-color: #a10000;
+            color: #FFFFFF;
+            width: 25%;
+            border: #000000;
+        }
+
         button:hover {
             background-color: #2980b9;
         }
@@ -191,6 +199,10 @@
                 </div>
             </div>
         </div>
+
+        <div>
+            <button class="reset-btn" id="reset-simulation">Reestablecer simulación</button>  
+        </div>
     </div>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.js"></script>
@@ -233,7 +245,10 @@
             const systemParam2 = document.getElementById('system-param2').value;
             const systemParam3 = document.getElementById('system-param3').value;
             const systemParam4 = document.getElementById('system-param4').value;
-            const serialPort = document.getElementById('serial-port').value;
+            var serialPort = document.getElementById('serial-port').value;
+            if(serialPort=='custom'){
+                serialPort = document.getElementById('custom-port').value;
+            }
             const baudRate = document.getElementById('baud-rate').value;
 
             alert(`Iniciando simulación con los siguientes parámetros:\n
@@ -261,6 +276,30 @@
         window.parent.actualizarSistema(systemParam1)    
         }
         
+
+        //-------------------------------------------------------------------------------------------
+        //---------    Funciones de reset de la simulacion
+        //-------------------------------------------------------------------------------------------
+
+        document.getElementById('reset-simulation').addEventListener('click', function() {
+            reset_simulation()
+        });
+
+        
+        function reset_simulation(){
+            socket_conf.emit('resetsimulation', { systemParam1: "APAGAAA"});
+            alert("RESETEAR GRAFICA DE CONTROL")
+            const btn = document.getElementById('start-simulation');
+            btn.style.backgroundColor = '#3498db'; 
+            btn.style.border = "white"; 
+            btn.style.color = "white";   
+            btn.disabled = false;
+
+            const statusDiv = document.getElementById('serial-status');
+        
+            statusDiv.className = 'serial-status status-uncertain';
+            statusDiv.textContent = '- Serial incierto -';
+        }
 
         function lanzarNewRef(new_value) {
             window.parent.postMessage({ type: "change_ref" }, new_value); // Mejor reemplazar * por el origen real

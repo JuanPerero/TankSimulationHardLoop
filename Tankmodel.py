@@ -41,7 +41,37 @@ class WaterTank:
         self.Hp0 = C_2 * self.h0 + C_3
         self.Hp = self.Hp0
 
-    def step(self, input):
+
+    def step(self,q_e):
+        #def tanque_step(H_actual, q_e, A, C, dt):
+        """
+        Calcula el próximo valor de altura del tanque usando integración Euler.
+        Parámetros:
+        -----------
+        H_actual : float
+            Altura actual del agua en el tanque (en metros)
+        q_e : float
+            Caudal de entrada (en m^3/s)
+        A : float
+            Área de la sección transversal del tanque (en m^2)
+        C : float
+            Coeficiente de salida (en m^2.5/s)
+        dt : float
+            Paso de tiempo de simulación (en segundos)
+        Retorna:
+        --------
+        H_nueva : float
+            Nueva altura del agua en el tanque después de dt segundos
+        """
+        # Proteger contra raíz negativa (si H_actual es muy pequeño)
+        salida = self.C * np.sqrt(max(self.h0, 0))
+        dH = (q_e - salida) / self.A
+        H_nueva = self.h0 + self.dt * dH
+        self.h = max(H_nueva, 0)  # evitar valores negativos
+        self.h0 = self.h
+        return self.h
+
+    def step_v2(self, input):
         C_2 = self.g2/(2*np.sqrt(self.h0))
         C_3 = self.g2*(np.sqrt(self.h0)-0.5*self.h0/np.sqrt(self.h0))
 
