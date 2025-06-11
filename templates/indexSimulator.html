@@ -55,7 +55,7 @@
 </head>
 
 <body>
-  <h2>Simulación de tanque de agua - Serial y reejecución implementado - Sin limite de la señal de control, (El que vea esto que pregunte a Juan) </h2>
+  <h2>Simulación de tanque de agua - Sigue dimensionando automaticamente el tanque - Rutina de overload - Salto del nivel al cambiar parametros - Sin limite de la señal de control</h2>
   <div class="container">
   
   <!-- Panel del tanque de animación -->
@@ -255,6 +255,7 @@
               borderWidth: 2,
               borderDash: [5, 5],
               fill: false,
+              stepped: true,
               tension: 0,
               pointRadius: 0, // No mostrar puntos, solo la línea
               spanGaps: true  // Conectar los puntos incluso si hay huecos

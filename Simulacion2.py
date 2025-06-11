@@ -45,13 +45,16 @@ def serve_canillason():
     return app.send_static_file('canillaON.png')
 @app.route('/canillaOFF.png')
 def serve_canillasoff():
-    return app.send_static_file('canillaOFF.png')
+    return app.send_static_file('canillaOFF.png') 
 @app.route('/salidaON.png')
 def serve_salidason():
     return app.send_static_file('salidaON.png')
 @app.route('/salidaOFF.png')
 def serve_salidasoff():
     return app.send_static_file('salidaOFF.png')
+@app.route('/desborde.png')
+def serve_desborde():
+    return app.send_static_file('desborde.png')
 
 
 # Ruta para enviar comandos al puerto serial

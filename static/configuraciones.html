@@ -226,18 +226,18 @@
                 const param2 = document.getElementById('system-param2').value;
                 const param3 = document.getElementById('system-param3').value;
                 const param4 = document.getElementById('system-param4').value;
-                alert(`Parámetros cambiados: \r h0 no repercute en el cambio ${param1},\r ${param2},\r ${param3},\r ${param4}`);
+                alert(`Parámetros cambiados: \r h0 no repercute en el cambio,\r C: ${param2},\r A: ${param3},\r Ref: ${param4}`);
                 // Enviar los parámetros al servidor
                 socket_conf.emit('changeparameter', {
-                   systemParam1: param1,
+                    systemParam1: param1,
                     systemParam2: param2,   
                     systemParam3: param3,
                     systemParam4: param4,
                 });
+                window.parent.change_ref(param4);
             } else {
                 alert('Por favor, corrija los errores antes de cambiar los parámetros.');
             }
-            window.parent.change_ref(systemParam4); 
         }
 
         function iniciarSimulacion(){

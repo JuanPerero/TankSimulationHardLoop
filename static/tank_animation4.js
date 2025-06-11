@@ -21,7 +21,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (item.id === "img3") item.visible = "1";
                 if (item.id === "img4") item.visible = "0";
             });
+            items = currentData.annotations.groups.find(g => g.id === "upperimageGroup").items;
+            items.forEach(item => {
+                if (item.id === "img1") item.visible = "1";
+                if (item.id === "img2") item.visible = "0";
+                if (item.id === "img3") item.visible = "1";
+                if (item.id === "img4") item.visible = "0";
+            });
+
             chartObj.setJSONData(currentData);
+        }       
+        else if (event.data.type === "Overload") {
+            items = currentData.annotations.groups.find(g => g.id === "upperimageGroup").items;
+            items.forEach(item => {
+                if (item.id === "img5") item.visible = "1";
+            });
+        }
+        else if (event.data.type === "OverloadOFF") {
+            items = currentData.annotations.groups.find(g => g.id === "upperimageGroup").items;
+            items.forEach(item => {
+                if (item.id === "img5") item.visible = "0";
+            });
         }
       });
     
@@ -71,38 +91,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         origw: "350",
                         origh: "500", // Actualizado para coincidir con el nuevo alto
                         autoscale: "1",
-                        showBelow: "1", // Las anotaciones no están limitadas por el borde superior
                         constrainedScale: "0", // Permite que las anotaciones excedan los límites del gráfico
                         groups: [
                             {
                                 id: "imageGroup",
+                                showBelow: "1",
                                 items: [
-                                    {
-                                        name: "img1",
-                                        id: "img1",
-                                        type: "image",
-                                        url: "canillaON.png",
-                                        x: "0",
-                                        y: "0", 
-                                        xScale: "55",
-                                        yScale: "60",
-                                        zIndex: "5", // Valor bajo para colocarlo debajo de otros elementos
-                                        allowOverflow: "1", // Permite que la imagen se desborde
-                                        visible: "0" // 0 para ocultar, 1 para mostrar inicialmente
-                                    },
-                                    {
-                                        name: "img2",
-                                        id: "img2",
-                                        type: "image",
-                                        url: "canillaOFF.png",
-                                        x: "0",
-                                        y: "0",
-                                        xScale: "55",
-                                        yScale: "60",
-                                        zIndex: "5",
-                                        allowOverflow: "1",
-                                        visible: "1" // 0 para ocultar, 1 para mostrar inicialmente
-                                    },
                                     {
                                         id: "img3",
                                         type: "image",
@@ -139,10 +133,53 @@ document.addEventListener('DOMContentLoaded', function() {
                                         alpha: "100",
                                         dashed: "1",
                                         dashLen: "4",
-                                        dashGap: "2",
-                                        showBelow: "0"
+                                        dashGap: "2"
                                     }
                                 ]
+                            },
+                            {
+                                id: "upperimageGroup",
+                                showBelow: "0",
+                                allowOverflow: "1",
+                                items: [
+                                    {
+                                        name: "img1",
+                                        id: "img1",
+                                        type: "image",
+                                        url: "canillaON.png",
+                                        x: "0",
+                                        y: "0", 
+                                        xScale: "55",
+                                        yScale: "60",
+                                        zIndex: "5", // Valor bajo para colocarlo debajo de otros elementos
+                                        allowOverflow: "1", // Permite que la imagen se desborde
+                                        visible: "0" // 0 para ocultar, 1 para mostrar inicialmente
+                                    },
+                                    {
+                                        name: "img2",
+                                        id: "img2",
+                                        type: "image",
+                                        url: "canillaOFF.png",
+                                        x: "0",
+                                        y: "0",
+                                        xScale: "55",
+                                        yScale: "60",
+                                        zIndex: "5",
+                                        allowOverflow: "1",
+                                        visible: "1" // 0 para ocultar, 1 para mostrar inicialmente
+                                    },
+                                    {
+                                        id: "img5",
+                                        type: "image",
+                                        url: "desborde.png",
+                                        x: "-15",
+                                        y: "57",
+                                        xScale: "93",
+                                        yScale: "115",
+                                        zIndex: "4",
+                                        allowOverflow: "1",
+                                        visible: "0" // 0 para ocultar, 1 para mostrar inicialmente
+                                    }]
                             }
                         ]
                     }
@@ -158,6 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error("El contenedor 'chart-container' no existe en el DOM");
             }
         });
+
     } else {
         console.error("El contenedor 'chart-container' no existe en el DOM al cargar la página");
     }
