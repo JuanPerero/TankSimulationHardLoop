@@ -1,15 +1,5 @@
 var chartObj;  // Declarar fuera de FusionCharts.ready
 document.addEventListener('DOMContentLoaded', function() {
-    //var chartObj;  // Declarar fuera de FusionCharts.ready
-    
-    //function updateValue(val) {
-    //    if (chartObj) {  // Verificar que chartObj existe antes de usarlo
-    //        chartObj.setData(val);
-    //        console.log(val);
-    //    }
-    //} Borrar si funciona bien
-
-
     window.tankSim = chartObj
     window.addEventListener("message", function(event) {
         if (event.data.type === "IMGanimation") {

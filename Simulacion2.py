@@ -34,24 +34,12 @@ ejecutando = True
 def index():
     return render_template('indexSimulator.html')
 
-@app.route('/tank_animation4.js')
+@app.route('/meter_animation.js')
 def serve_tank_animation():
-    return app.send_static_file('tank_animation4.js')
+    return app.send_static_file('meter_animation.js')
 @app.route('/configuraciones.html')
 def serve_configuration():
     return app.send_static_file('configuraciones.html')
-@app.route('/canillaON.png')
-def serve_canillason():
-    return app.send_static_file('canillaON.png')
-@app.route('/canillaOFF.png')
-def serve_canillasoff():
-    return app.send_static_file('canillaOFF.png')
-@app.route('/salidaON.png')
-def serve_salidason():
-    return app.send_static_file('salidaON.png')
-@app.route('/salidaOFF.png')
-def serve_salidasoff():
-    return app.send_static_file('salidaOFF.png')
 
 
 # Ruta para enviar comandos al puerto serial
