@@ -6,6 +6,7 @@ import struct
 import time
 import re
 from Tankmodel import *
+from Tempmodel import *
 
 # Configuración del puerto serie
 ser = serial.Serial(
@@ -98,21 +99,26 @@ def init_serial(params):
         return False
 
 
+################################################################################
+#####                   FUNCIONES DE INICIALIZACION DE LA SIMULACION       #####
+################################################################################
+
+
 global Instancia_simulacion
 Instancia_simulacion = None        
 def init_simulation(params):
     global Instancia_simulacion
-    Hinicial = params['systemParam1']
-    CtteQ2 = params['systemParam2']
-    area = params['systemParam3']
+    Tinicial = params['systemParam1']
+    CtteCe = params['systemParam2']
+    CtteM = params['systemParam3']
     referencia = params['systemParam4']
     # Convertit todos los valores a float
-    Hinicial = float(Hinicial)
-    CtteQ2 = float(CtteQ2)
-    area = float(area)
+    Tinicial = float(Tinicial)
+    CtteCe = float(CtteCe)
+    CtteM = float(CtteM)
     referencia = float(referencia)
-    Instancia_simulacion = WaterTank(area, CtteQ2,referencia, dt=1, h0=Hinicial)
- 
+    Instancia_simulacion = Kettle(CtteCe, CtteM, referencia, T0=Tinicial)
+
 def set_reference(valor):
     # Agregar la carga de la referencia desde la web. 
      socketio.emit('change_ref', {'valor': valor})
@@ -130,16 +136,16 @@ def Change_parameters(data):
     if ejecutando:
         print("Cambio de parámetros:", data)
         global Instancia_simulacion
-        #Hinicial = data['systemParam1']
-        CtteQ2 = data['systemParam2']
-        area = data['systemParam3']
-        referencia = data['systemParam4']
+        #Tinicial = params['systemParam1']
+        CtteCe = params['systemParam2']
+        CtteM = params['systemParam3']
+        referencia = params['systemParam4']
         # Convertit todos los valores a float
-        #Hinicial = float(Hinicial)
-        CtteQ2 = float(CtteQ2)
-        area = float(area)
+        #Tinicial = float(Tinicial)
+        CtteCe = float(CtteCe)
+        CtteM = float(CtteM)
         referencia = float(referencia)
-        Instancia_simulacion.set_values(area, CtteQ2, referencia, Instancia_simulacion.h0)
+        Instancia_simulacion.set_values(CtteCe, CtteM, referencia, Instancia_simulacion.T0)
     
 
 
@@ -167,7 +173,7 @@ def clear_all_resources(data):
 #lock_serial = threading.Lock()
 y_sense = 0
 def ciclo_comando_y_lectura():
-    y_sense = Instancia_simulacion.h0 
+    y_sense = Instancia_simulacion.T0 
     #Enviar referencia
     global ejecutando  
     while ejecutando:
@@ -185,8 +191,9 @@ def ciclo_comando_y_lectura():
             ctrl_sig = recep_serial()
             # Calculo sobre el modelo
             y_sense = Instancia_simulacion.step(ctrl_sig)
+            p_cicle = Instancia_simulacion.harmestain
             # Guardado del calculo para enviarlo en la siguiente iteracion
-            socketio.emit('actualizacion_valor', {'valor': y_sense, 'ctrl': ctrl_sig})
+            socketio.emit('actualizacion_valor', {'valor': y_sense, 'ctrl': ctrl_sig, 'ciclo': p_cicle})
             time.sleep(Instancia_simulacion.dt)
         except Exception as e:
             print(f"[ERROR GENERAL] {e}")

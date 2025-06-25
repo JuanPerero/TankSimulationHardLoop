@@ -135,6 +135,14 @@ float procesamiento(float error){
   //return ControlDifuso(error);
 }
 
+float invHarmestain(float contr){
+  float step = 0.01-contr;
+  float aux_1 = step/2;
+  float aux_2 = sin(200*PI*step);
+  float E = 38.72*(0.005-aux_1+aux_2/(400*PI));
+  return 1/E;
+
+}
 
 float ControlTipoX(float error){
    return error * 20;

@@ -108,6 +108,7 @@
     socket.on('actualizacion_valor', function(data) {
       console.log('Temperatura recibida del servidor:', data.valor);
       actualizarSistema(data.valor, data.ctrl);
+      window.setSinusoidalAreaPercentage(data.ciclo);
     });
     
     socket.on('change_ref', function(data){
@@ -143,7 +144,8 @@
       const data = [];
       for (let i = 0; i <= points; i++) {
         const x = (i / points) * 100; // X de 0 a 100 (porcentaje del ciclo)
-        const y = 50 + 50 * Math.sin((i / points) * 2 * Math.PI); // Y de 0 a 100
+        //const y = 50 + 50 * Math.sin((i / points) * 2 * Math.PI); // Y de 0 a 100   ciclo completo de la senoidal
+        const y = 100 * Math.sin((i / points) * Math.PI); // Y de 0 a 100
         data.push({ x, y });
       }
       return data;
@@ -163,8 +165,10 @@
       const totalPoints = chart.data.datasets[0].data.length;
       const fillToIndex = Math.floor((sinusoidalAreaPercentage / 100) * totalPoints);
       
-      // Crear datos para el área sombreada
-      const areaData = chart.data.datasets[0].data.slice(0, fillToIndex + 1);
+      // - Crear datos para el área sombreada, desde el inicio del ciclo hasta el punto
+      //const areaData = chart.data.datasets[0].data.slice(0, fillToIndex + 1);
+      // - desde el punto hasta el fin del ciclo
+      const areaData = chart.data.datasets[0].data.slice(fillToIndex, 100);
       
       // Actualizar el dataset del área
       chart.data.datasets[1].data = areaData;
@@ -180,8 +184,7 @@
       control = parseFloat(control);
       
       // Actualizar visualización del calentador
-      if (chartObj && chartObj.setData) {
-        //chartObj.setData(temperatura); VIEJO
+      if (window.tankSim) {
         window.tankSim.feedData(`&value=${temperatura}`);
       }
       
@@ -224,17 +227,15 @@
     function change_ref(val) {
         referenceValue = parseFloat(val); 
 
-        if (chartObj) {
-            let currentData = chartObj.getJSONData();
-            relativeY = A1 * val + B1;
-            let items = currentData.annotations.groups.find(g => g.id === "imageGroup").items;
-            items.forEach(item => {
-                if (item.id === "horizontalLine") {
-                    item.y = relativeY; 
-                    item.toY = relativeY;
-                }
-            });
-            chartObj.setJSONData(currentData);
+        if (window.tankSim) {
+          //let currentData = window.tankSim.getJSONData()
+          let currentData = JSON.parse(JSON.stringify(window.tankSim.getJSONData()));
+          let items = currentData.trendpoints.point
+          items[0].startValue = val*0.99
+          items[1].startValue = val*1.01
+          items[2].startValue = val*0.99
+          items[2].endValue = val*1.01
+          window.tankSim.setJSONData(currentData);
         }
     }
     change_ref(25); // Temperatura de referencia inicial
@@ -381,7 +382,7 @@
         data: {
           datasets: [
             {
-              label: 'Señal Senoidal',
+              label: 'Señal de potencia',
               data: generateStaticSinusoidalData(),
               borderColor: 'purple',
               backgroundColor: 'transparent',
@@ -391,7 +392,7 @@
               pointRadius: 0
             },
             {
-              label: `Área Cubierta (${sinusoidalAreaPercentage}%)`,
+              label: `Fracción conducida`,
               data: [],
               borderColor: 'rgba(148, 0, 211, 0.8)',
               backgroundColor: 'rgba(148, 0, 211, 0.3)',
@@ -460,7 +461,7 @@
     // Función global para cambiar el porcentaje del área (llamable desde fuera)
     window.setSinusoidalAreaPercentage = function(percentage) {
       updateSinusoidalArea(percentage);
-      console.log(`Área bajo la curva senoidal establecida al ${percentage}%`);
+      //console.log(`Área bajo la curva senoidal establecida al ${percentage}%`);
     };
     
     // Ejemplo de uso automático (puedes eliminarlo si no lo necesitas)

@@ -42,11 +42,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 dataFormat: 'json',
                 dataSource: {
                     "chart": {
-                        "caption": "Temperatura del liquido en el contenedor",
+                        "caption": "Temperatura del líquido en el contenedor",
                         "subcaption": "Experimento del calentador de agua",
                         "plotToolText": "Current Score: $value",
                         "theme": "fusion",
                         "chartBottomMargin": "50",
+                        "refreshInterval": "0.1",
                         "showValue": "1"
                     },
                     "colorRange": {
@@ -113,45 +114,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         "showBelow": "0",
                         "groups": [{
                             "id": "arcs",
-                            "items": [{
-                                "id": "national-cs-bg",
-                                "type": "rectangle",
-                                "x": "$chartCenterX+2",
-                                "y": "$chartEndY - 45",
-                                "tox": "$chartCenterX + 130",
-                                "toy": "$chartEndY - 25",
-                                "fillcolor": "#f8bd19"
-                            }, {
-                                "id": "national-cs-text",
-                                "type": "Text",
-                                "color": "#ffffff",
-                                "label": "National Average : 7.2",
-                                "fontSize": "12",
-                                "align": "left",
-                                "x": "$chartCenterX + 7",
-                                "y": "$chartEndY - 35"
-                            }, {
-                                "id": "state-cs-bg",
-                                "type": "rectangle",
-                                "x": "$chartCenterX-2",
-                                "y": "$chartEndY - 45",
-                                "tox": "$chartCenterX - 103",
-                                "toy": "$chartEndY - 25",
-                                "fillcolor": "#6baa01"
-                            }, {
-                                "id": "state-cs-text",
-                                "type": "Text",
-                                "color": "#ffffff",
-                                "label": "State Average : 8",
-                                "fontSize": "12",
-                                "align": "right",
-                                "x": "$chartCenterX - 7",
-                                "y": "$chartEndY - 35"
-                            }, {
+                            "items": [
+                            {
                                 "id": "store-cs-bg",
                                 "type": "rectangle",
                                 "x": "$chartCenterX-130",
-                                "y": "$chartEndY - 22",
+                                "y": "$chartEndY - 20",
                                 "tox": "$chartCenterX + 150",
                                 "toy": "$chartEndY - 2",
                                 "fillcolor": "#0075c2"

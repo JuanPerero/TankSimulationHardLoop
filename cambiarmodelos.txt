@@ -1,0 +1,11 @@
+Pasos para cambiar el modelo de trabajo:
+- Cambiar los parametros de configuracion en el archivo "configuraciones.html"
+- Cambiar el js de animacion
+- en funcion a lo necesitado modificar las graficas temportales
+
+Archivo simulacion
+- Cambio en las funciones
+    - De inicializacion de simulacion
+    - De cambio de parametros
+    - De ciclo_comando_y_lectura 
+
